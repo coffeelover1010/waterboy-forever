@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: Waterboy Forever
+## Notes: Offers conjured water and food during trades.
+## Author: Videocat
+## Version: 0.2.0-beta
+## SavedVariables: WaterTradeForeverDB
+
+WaterboyForever.lua
