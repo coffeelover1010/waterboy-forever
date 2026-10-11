@@ -1,0 +1,3 @@
+Generated with the built-in image generation tool on 2026-10-11.
+
+Use case: stylized-concept. Create one square addon icon for Waterboy Forever, a fantasy-game addon that hands out conjured water and food. An original hand-painted fantasy inventory icon of a single squat blue glass water flask with cork stopper, luminous cool water inside, with a small bread roll nestled at its base. Tight centered composition, bold silhouette legible at 64px, dark navy textured background, understated worn bronze square border. Rich brushwork, clean readable shapes. No text, letters, logos, game trademarks, or watermark. Output a square image.
