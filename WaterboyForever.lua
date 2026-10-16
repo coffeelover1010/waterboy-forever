@@ -14,13 +14,13 @@ local function Offer()
     if not UnitIsPlayer("NPC") then return end
     local _, class = UnitClass("NPC")
     local level = UnitLevel("NPC")
-    if (not classes[class] and class ~= "WARRIOR") or not level or level < 1 then return end
-    local wantsFood = class == "HUNTER" or class == "WARRIOR"
+    local wantsFood = class == "HUNTER" or class == "WARRIOR" or class == "ROGUE"
+    if (not classes[class] and not wantsFood) or not level or level < 1 then return end
     -- Never add to a trade that the player has already populated.
     for slot = 1, 6 do
         if GetTradePlayerItemInfo(slot) then attempted = true; return end
     end
-    local best, waiting = {}, false
+    local best, waiting, candidates = {}, false, {}
     for bag = 0, NUM_BAG_SLOTS or 4 do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local info = C_Container.GetContainerItemInfo(bag, slot)
@@ -31,16 +31,50 @@ local function Offer()
                 if not name or not requiredLevel or not maxStack then
                     waiting = true
                     C_Item.RequestLoadItemDataByID(info.itemID)
-                elseif requiredLevel <= level and info.stackCount == maxStack and not info.isBound then
+                elseif requiredLevel <= level and info.stackCount and info.stackCount > 0 and not info.isBound then
                     if info.isLocked then waiting = true
-                    elseif not best[kind] or rank > best[kind].rank then
-                        best[kind] = { bag=bag, slot=slot, rank=rank, id=info.itemID, link=link or name, count=info.stackCount }
+                    else
+                        local item = { bag=bag, slot=slot, rank=rank, id=info.itemID, link=link or name, count=info.stackCount, maxStack=maxStack }
+                        candidates[#candidates + 1] = item
+                        if not best[kind] or rank > best[kind].rank or (rank == best[kind].rank and item.count > best[kind].count) then
+                            best[kind] = item
+                        end
                     end
                 end
             end
         end
     end
     if waiting or not next(best) then return end
+    -- Consolidate only the chosen rank, one move per retry so bag locks can settle.
+    -- Offer at most one stack per type, or all remaining items if there are fewer.
+    for _, kind in ipairs({"water", "food"}) do
+        local item = best[kind]
+        if item and item.count < item.maxStack then
+            for _, donor in ipairs(candidates) do
+                if donor ~= item and donor.id == item.id then
+                    local count = math.min(donor.count, item.maxStack - item.count)
+                    local ok = pcall(function()
+                        if count == donor.count then
+                            C_Container.PickupContainerItem(donor.bag, donor.slot)
+                        else
+                            C_Container.SplitContainerItem(donor.bag, donor.slot, count)
+                        end
+                        local cursorKind, id = GetCursorInfo()
+                        if cursorKind == "item" and id == item.id then
+                            C_Container.PickupContainerItem(item.bag, item.slot)
+                        end
+                    end)
+                    local cursorKind, id = GetCursorInfo()
+                    if cursorKind == "item" and id == item.id then ClearCursor() end
+                    if not ok then
+                        attempted = true
+                        Say("Could not combine " .. kind .. ". Add it manually for this trade.")
+                    end
+                    return
+                end
+            end
+        end
+    end
     -- Set before touching the cursor: item events must never repeat the offer.
     attempted = true
     local tradeSlot = 1
@@ -77,7 +111,7 @@ frame:SetScript("OnEvent", function(_, event, name, acceptedOther)
         generation = generation + 1
         local token = generation
         -- Bounded retries accommodate delayed NPC identity, item cache and bag locks.
-        for tick = 1, 8 do
+        for tick = 1, 40 do
             C_Timer.After(tick * 0.25, function()
                 if token == generation then Offer() end
             end)
@@ -97,6 +131,6 @@ SlashCmdList.WATERTRADEFOREVER = function(message)
     if message == "on" then WaterTradeForeverDB.enabled = true
     elseif message == "off" then WaterTradeForeverDB.enabled = false
     end
-    Say((WaterTradeForeverDB.enabled and "On" or "Off") .. ". Offers water to mana classes, food and water to hunters, and food to warriors; you click Trade. /waterboy on or off.")
+    Say((WaterTradeForeverDB.enabled and "On" or "Off") .. ". Offers water to mana classes, food and water to hunters, and food to warriors and rogues; you click Trade. /waterboy on or off.")
 end
 
