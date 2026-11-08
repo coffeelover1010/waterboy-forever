@@ -1,3 +1,12 @@
+# Waterboy Forever 0.3.1
+
+- Choose food, water, or both separately for each class in the settings window.
+- Default hunters and warlocks to both, warriors and rogues to food, and other classes to water.
+- Include the optional Accept trade keybinding. Trade acceptance remains a deliberate keypress or click.
+- Preserve existing saved settings and partial-stack handling.
+
+Stable release for WoW Forever. Offline checks passed. The class settings and keybinding still need live-client validation.
+
 # 0.3.0-beta
 
 - Rogues receive food only.

@@ -1,0 +1,7 @@
+<Bindings>
+    <Binding name="WATERBOY_ACCEPT_TRADE" category="BINDING_HEADER_WATERBOY_FOREVER">
+        if TradeFrame and TradeFrame:IsShown() and TradeFrameTradeButton and TradeFrameTradeButton:IsEnabled() then
+            AcceptTrade()
+        end
+    </Binding>
+</Bindings>

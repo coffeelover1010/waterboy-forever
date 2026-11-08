@@ -100,3 +100,72 @@ print('PASS consolidation stops on closure, acceptance, combat and manual trade 
 lua=setup()
 lua.execute("class='ROGUE'; bags={}; for i=1,20 do bags[i]={itemID=1487,stackCount=1} end; event('TRADE_SHOW'); flush(); assert(offered==1 and quantities[1]==20)")
 print('PASS twenty single breads consolidate into one offer')
+
+# Acceptance occurs only when the user invokes the binding.
+import xml.etree.ElementTree as ET
+binding = ET.parse(Path(__file__).resolve().parents[1] / 'Bindings.xml').getroot().find('Binding')
+assert binding.attrib['name'] == 'WATERBOY_ACCEPT_TRADE'
+lua=setup()
+lua.execute("accepts=0; buttonEnabled=true; function AcceptTrade() accepts=accepts+1 end; TradeFrameTradeButton={IsEnabled=function() return buttonEnabled end}")
+lua.execute("event('TRADE_SHOW'); flush(); flush(); event('TRADE_ACCEPT_UPDATE',0,1); assert(accepts==0)")
+lua.execute(binding.text)
+lua.execute("assert(accepts==1); visible=false")
+lua.execute(binding.text)
+lua.execute("assert(accepts==1); visible=true; buttonEnabled=false")
+lua.execute(binding.text)
+lua.execute("assert(accepts==1)")
+print('PASS binding accepts only on invocation with visible trade and enabled button; no automatic acceptance')
+
+# Class defaults and saved overrides drive actual trade contents.
+for cls, mode in {'WARRIOR':'food','PALADIN':'water','HUNTER':'both','ROGUE':'food','PRIEST':'water','SHAMAN':'water','MAGE':'water','WARLOCK':'both','DRUID':'water'}.items():
+    for override in [None, 'food', 'water', 'both', 'invalid']:
+        lua=setup()
+        selected=override if override in ('food','water','both') else mode
+        lua.globals().class_token=cls
+        lua.execute("class=class_token; bags={{itemID=3772,stackCount=8},{itemID=1487,stackCount=7}}")
+        if override:
+            lua.globals().override=override
+            lua.execute("WaterTradeForeverDB.classOffers[class]=override")
+        lua.execute("event('TRADE_SHOW'); flush()")
+        expected={'food':[1487], 'water':[3772], 'both':[3772,1487]}[selected]
+        assert lua.globals().offered == len(expected), (cls, override)
+        assert [lua.globals().trades[i+1] for i in range(len(expected))] == expected
+print('PASS all nine class defaults, all override modes and invalid-value fallback')
+
+lua=setup()
+lua.execute("""
+widgets={}; UISpecialFrames={}; UIParent={}
+function CreateFrame(kind,name,parent,template)
+    local w={scripts={}, text={SetText=function() end}, TitleText={SetText=function() end}}
+    setmetatable(w,{__index=function(_,key) return function() end end})
+    function w:SetScript(key,fn) self.scripts[key]=fn end
+    function w:SetChecked(value) self.checked=value end
+    function w:GetChecked() return self.checked end
+    function w:CreateFontString() return {SetPoint=function() end,SetText=function() end} end
+    widgets[#widgets+1]=w
+    return w
+end
+function UIDropDownMenu_SetWidth() end
+function UIDropDownMenu_SetText(w,text) w.selected=text end
+function UIDropDownMenu_Initialize(w,fn) w.initialize=fn end
+function UIDropDownMenu_CreateInfo() return {} end
+function UIDropDownMenu_AddButton(info) entries[#entries+1]=info end
+SlashCmdList.WATERTRADEFOREVER('')
+assert(#widgets==12)
+local classes={'WARRIOR','PALADIN','HUNTER','ROGUE','PRIEST','SHAMAN','MAGE','WARLOCK','DRUID'}
+for i,class in ipairs(classes) do
+    local dropdown=widgets[i+2]
+    entries={}; dropdown.initialize()
+    assert(#entries==3)
+    entries[3].func()
+    assert(WaterTradeForeverDB.classOffers[class]=='both' and dropdown.selected=='Food and water')
+end
+SlashCmdList.WATERTRADEFOREVER('settings')
+assert(#widgets==12)
+widgets[12].scripts.OnClick()
+assert(next(WaterTradeForeverDB.classOffers)==nil)
+assert(widgets[10].selected=='Food and water')
+widgets[2].checked=false; widgets[2].scripts.OnClick(widgets[2])
+assert(WaterTradeForeverDB.enabled==false)
+""")
+print('PASS settings opening, per-class dropdown callbacks, reuse, reset and enable toggle')
