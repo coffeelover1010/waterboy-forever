@@ -1,3 +1,14 @@
+## 0.4.0 - Mage toolkit - 2026-11-12
+
+- Ice Block supports same-button cancellation; escape macros cancel Ice Block before casting.
+- Added channel protection, combined conjuring, cursor Blizzard, wand and Slow Fall utility behavior; Polymorph stops autoattack.
+
+- Added a mage utility window with bag supply and reagent totals.
+- Added 34 previewable, localized mage macro templates with configurable target priority, Counterspell stopcasting and character/account storage.
+- Added duplicate-name protection, capacity checks, combat guards and saved-body verification; existing macros remain untouched.
+- Added an AddOns options entry and `/mageboy`; retained trade preferences, slash toggles and manual trade acceptance.
+- Offline regression checks pass. Live-client validation remains pending.
+
 # Waterboy Forever 0.3.1
 
 - Choose food, water, or both separately for each class in the settings window.

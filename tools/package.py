@@ -9,7 +9,7 @@ files={toc}
 for line in toc.read_text().splitlines():
  if line.strip() and not line.startswith('#'):
   files.add(root/line.strip().replace('\\','/'))
-for name in ('Bindings.xml','README.md','CHANGELOG.md','LICENSE','Libs/NOTICE.txt','Libs/Ace3-LICENSE.txt'):
+for name in ('Bindings.xml','README.md','CHANGELOG.md','docs/macro-research.md','LICENSE','Libs/NOTICE.txt','Libs/Ace3-LICENSE.txt'):
  if (root/name).is_file():files.add(root/name)
 for directory in ('media','release-media'):
  if (root/directory).exists():

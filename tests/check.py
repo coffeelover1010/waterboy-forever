@@ -1,5 +1,5 @@
 from pathlib import Path
-from lupa import LuaRuntime
+from lupa.lua51 import LuaRuntime
 
 source = (Path(__file__).resolve().parents[1] / 'WaterboyForever.lua').read_text()
 def setup():
@@ -81,7 +81,7 @@ cases = [
 ]
 for label, before, assertion in cases:
     lua = setup()
-    lua.execute(before + "; event('TRADE_SHOW'); flush(); assert(" + assertion + ")")
+    lua.execute(before + "\n event('TRADE_SHOW'); flush(); assert(" + assertion + ")")
     print('PASS', label)
 lua = setup()
 lua.execute("event('TRADE_SHOW'); event('TRADE_CLOSED'); flush(); assert(offered==0)")

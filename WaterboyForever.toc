@@ -1,8 +1,9 @@
 ## Interface: 16001
-## Title: Waterboy Forever
-## Notes: Offers conjured water and food during trades.
+## Title: Waterboy Forever - Mage Toolkit
+## Notes: Mage macro library, supply overview and configurable refreshment trades.
 ## Author: Videocat
-## Version: 0.3.1
+## Version: 0.4.0
 ## SavedVariables: WaterTradeForeverDB
 
 WaterboyForever.lua
+MageToolkit.lua

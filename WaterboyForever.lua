@@ -203,8 +203,12 @@ SlashCmdList.WATERTRADEFOREVER = function(message)
     message = (message or ""):lower():match("^%s*(.-)%s*$")
     if message == "on" then WaterTradeForeverDB.enabled = true
     elseif message == "off" then WaterTradeForeverDB.enabled = false
-    elseif message == "" or message == "config" or message == "settings" then OpenSettings(); return
+    elseif message == "trade" then OpenSettings(); return
+    elseif message == "" or message == "config" or message == "settings" or message == "macros" then
+        if WaterboyMage then WaterboyMage.Open() else OpenSettings() end; return
     end
     Say((WaterTradeForeverDB.enabled and "On" or "Off") .. ". Offers refreshments automatically; click Trade or use Key Bindings > Waterboy > Accept trade. /waterboy for settings; /watertrade on or off.")
 end
 
+
+WaterboyOpenTradeSettings = OpenSettings
